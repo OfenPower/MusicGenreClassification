@@ -1,0 +1,13 @@
+keras.layers.Conv2D(128, 
+                    3, 
+                    padding='same',
+                    activation='relu',
+                    input_shape=(16, 16, 3)),
+
+keras.layers.Dense(256, activation='relu', input_shape=(32, 32)),
+
+keras.layers.Flatten(input_shape=(inputs_train.shape[1], inputs_train.shape[2])),
+
+keras.layers.Flatten()
+
+keras.layers.MaxPooling2D()
