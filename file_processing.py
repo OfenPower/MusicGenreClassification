@@ -3,10 +3,9 @@ import numpy as np
 import librosa
 import math
 import json
+from sklearn.model_selection import train_test_split
 
-# Input und Output Ordner
-DATASET_PATH = "../genres"
-JSON_PATH = "../data_all_10.json"
+
 
 # Songdateiattribute
 SAMPLE_RATE = 22050
@@ -19,7 +18,7 @@ def save_mfcc(dataset_path,
               n_mfcc=13, 
               n_fft=2048, 
               hop_length=512, 
-              num_segments=1):  # songs in segmente aufteilen. Für jedes Segment werden n_mffcs berechnet. Dadurch wird die TrainingData um num_segments erweitert
+              num_segments=1):  # songs in segmente aufteilen. Für jedes Segment werden n_mffcs berechnet. Dadurch wird die TrainingData um den Faktor num_segments erweitert
     # Daten in Dict speichern
     data = {
         "mapping": [],
@@ -87,11 +86,38 @@ def load_data(dataset_path):
     # listen aus json in ndarrays umwandeln
     inputs = np.array(data["mfcc"])
     labels = np.array(data["labels"])
-
     return inputs, labels
 
-# Main
+def prepare_cnn_datasets(data_path, test_size):
+    """
+    Lädt Samples aus .json datei in data_path, splittet diese in
+    train, validation und test splits und bereitet die splits
+    für das cnn auf, indem die Dimensionen der ndarrays für
+    das cnn inputshape angepasst werden.
+    """
+
+    # Songdateien laden
+    X, Y = load_data(data_path)
+
+    # Train/Test Split erzeugen
+    # Die Ergebnisse sind 3D Vekoren -> (num_samples, anzahl mfcc vektoren, n_mfcc koeffizienten)
+    X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=test_size)
+
+    # ndarray Dimension für CNN Inputshape anpassen
+    # Das Ergebnis sind 4D Vektoren -> (num_samples, anzahl mfcc vektoren, n_mfcc koeffizienten, 1)
+    X_train = X_train[..., np.newaxis]
+    X_test = X_test[..., np.newaxis]
+    
+    return X_train, X_test, Y_train, Y_test
+
+
+# Main zum Testen der file_processing Funktionen
 if __name__ == "__main__":
+    
+     # Input und Output Ordner
+    DATASET_PATH = "../genres_short"
+    JSON_PATH = "../data_short.json"
+
     """ save_mfcc(DATASET_PATH, 
               JSON_PATH, 
               n_mfcc=13,  
@@ -99,6 +125,6 @@ if __name__ == "__main__":
               hop_length=512, 
               num_segments=1) """
 
-    inputs, targets = load_data(JSON_PATH)
+    X_train, X_validation, X_test, Y_train, Y_validation, Y_test = prepare_cnn_datasets(JSON_PATH, 0.25, 0.2)
 
-    print(len(inputs))
+    print(X_train.shape)
