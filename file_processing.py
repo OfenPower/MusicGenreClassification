@@ -88,7 +88,7 @@ def load_data(dataset_path):
     labels = np.array(data["labels"])
     return inputs, labels
 
-def prepare_cnn_datasets(data_path, test_size, validation_size):
+def prepare_cnn_datasets(data_path, test_size):
     """
     Lädt Samples aus .json datei in data_path, splittet diese in
     train, validation und test splits und bereitet die splits
@@ -100,18 +100,15 @@ def prepare_cnn_datasets(data_path, test_size, validation_size):
     X, Y = load_data(data_path)
 
     # Train/Test Split erzeugen
-    X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=test_size)
-
-    # Train/Validation Split erzeugen
     # Die Ergebnisse sind 3D Vekoren -> (num_samples, anzahl mfcc vektoren, n_mfcc koeffizienten)
-    X_train, X_validation, Y_train, Y_validation = train_test_split(X_train, Y_train, test_size=validation_size) 
+    X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=test_size)
 
     # ndarray Dimension für CNN Inputshape anpassen
     # Das Ergebnis sind 4D Vektoren -> (num_samples, anzahl mfcc vektoren, n_mfcc koeffizienten, 1)
     X_train = X_train[..., np.newaxis]
-    X_validation = X_validation[..., np.newaxis]
     X_test = X_test[..., np.newaxis]
-    return X_train, X_validation, X_test, Y_train, Y_validation, Y_test
+    
+    return X_train, X_test, Y_train, Y_test
 
 
 # Main zum Testen der file_processing Funktionen

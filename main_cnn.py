@@ -22,9 +22,7 @@ import feature_extract
 import file_processing
 
 
-# Input und Output Ordner
-DATASET_PATH = "../genres_short"
-JSON_PATH = "../data_short.json"
+
 
 
 
@@ -47,23 +45,55 @@ JSON_PATH = "../data_short.json"
 
 ## ---------------- Klassifikation ----------------
 
-# Daten aus json laden, in train/validation/test-Split einteilen und für cnn aufbereiten
-inputs_train, inputs_validation, inputs_test, targets_train, targets_validation, targets_test = file_processing.prepare_cnn_datasets(JSON_PATH, test_size=0.25, validation_size=0.2)
+# Input und Output Ordner
+DATASET_PATH = "../genres_short"
+JSON_PATH = "../data_all_10.json"
 
-# NN Modell bauen
+# Daten aus json laden, in train/validation/test-Split einteilen und für cnn aufbereiten
+inputs_train, inputs_test, targets_train, targets_test = file_processing.prepare_cnn_datasets(JSON_PATH, test_size=0.25)
+
+cnn_input_shape = (inputs_train.shape[1], inputs_train.shape[2], inputs_train.shape[3])
+
+
+# CNN Modell bauen
 model = keras.models.Sequential([
-    # Flatten Layer als Input Layer nehmen.
-    # inputs_train.shape[1] = track_samples / hop_length viele Mfcc Vektoren 
-    # inputs_train.shape[2] = n_mfcc Koeffizienten
-    keras.layers.Flatten(input_shape=(inputs_train.shape[1], inputs_train.shape[2])),    
-    keras.layers.Dense(512, activation='relu', kernel_regularizer=keras.regularizers.l2(0.001)),
+    # 1. Input Conv Layer = (anzahl mfcc vektoren, n mfcc Koeffizienten, 1) 
+    keras.layers.Conv2D(32,
+                        3,
+                        activation='relu',
+                        input_shape=cnn_input_shape),
+    keras.layers.MaxPooling2D(pool_size=(3, 3),
+                              strides=(2, 2),
+                              padding='same'),
     keras.layers.BatchNormalization(),
+    
+    # 2. Hidden Conv Layer
+    keras.layers.Conv2D(32, 
+                        3, 
+                        padding='same', 
+                        activation='relu'),
+    keras.layers.MaxPooling2D(pool_size=(3, 3),
+                              strides=(2, 2),
+                              padding='same'),
+    keras.layers.BatchNormalization(),
+
+    # 3. Hidden Conv Layer
+    keras.layers.Conv2D(32, 
+                        2,                      # -> kleinere Kernelsize
+                        padding='same', 
+                        activation='relu'),
+    keras.layers.MaxPooling2D(pool_size=(2, 2), # -> kleinere Poolsize
+                              strides=(2, 2),
+                              padding='same'),    
+    keras.layers.BatchNormalization(),
+
+    # 4. Flatten und Dense Layer
+    keras.layers.Flatten(),
+    keras.layers.Dense(64, activation='relu'),
     keras.layers.Dropout(0.3),
-    keras.layers.Dense(256, activation='relu', kernel_regularizer=keras.regularizers.l2(0.001)),
-    keras.layers.Dropout(0.3),
-    keras.layers.Dense(64, activation='relu', kernel_regularizer=keras.regularizers.l2(0.001)),
-    keras.layers.Dropout(0.3),
-    keras.layers.Dense(10, activation='softmax'),
+
+    # 5. Output Layer
+    keras.layers.Dense(10, activation='softmax') 
 ])
 
 model.summary()
@@ -74,25 +104,22 @@ model.summary()
 # Hyperparameter definieren
 learning_rate = 0.0001
 batch_size = 32 #5
-epochs = 50 #10
+epochs = 30 #10 #50
 validation_ratio = 0.2  # proportion of training data used for validation
 
 # SGD Optimierer festlegen und Model compilen
 #sgd = keras.optimizers.SGD(learning_rate=learning_rate, momentum=0.5, nesterov=False)
 sgd = keras.optimizers.Adam(learning_rate=learning_rate)
 model.compile(optimizer=sgd,
-              loss='categorical_crossentropy',
+              loss='sparse_categorical_crossentropy',
               metrics=['accuracy'])
 
 # targets in onehot format konvertieren
-targets_train_onehot = keras.utils.to_categorical(targets_train)
-#print(targets_train)
-#print(targets_train_onehot)
-#print(targets_train.shape)
+#targets_train_onehot = keras.utils.to_categorical(targets_train)
 
 # In summary, acc is the accuracy of a batch of training data and val_acc is the accuracy of a batch of testing data.
 history = model.fit(inputs_train,
-          targets_train_onehot,
+          targets_train,
           batch_size=batch_size,
           epochs=epochs,
           validation_split=validation_ratio
@@ -100,7 +127,12 @@ history = model.fit(inputs_train,
 
 ## Validierung
 
-#model.evaluate(inputs_test, targets_test, verbose=1)
+test_error, test_accuracy = model.evaluate(inputs_test, targets_test, verbose=1)
+print("Error = {}".format(test_error))
+print("Accuracy = {}".format(test_accuracy))
+
+
+## Konfusionsmatrix
 
 classes = [
     'blues', 'classical', 'country', 'disco', 'hiphop', 'jazz', 'metal', 'pop',
