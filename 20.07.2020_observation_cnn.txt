@@ -1,8 +1,24 @@
 ---------------------------------------------
---------------- Ziele -----------------------
+--------------- Ziele bzw. ToDo -------------
 ---------------------------------------------
 
+Ziele: 
 - Accuracy erhöhen
+
+ToDo:
+- t-SNE Verfahren zur Visualisierung der Inputdaten anwenden
+    - Damit dann herausfinden, welche genres sich ähneln, um Falschzuordnungen erklären zu können
+- Testdaten statt in 10 Segmente mal in 20 Segmente einteilen und durch Model klassifizieren lassen
+- Datenmenge anpassen:
+    - Songs die das falsche genre im Datensatz haben in das richtige genre stecken, falls vorhanden
+    - Duplikate entfernen
+    - Anschließend nochmal Mfccs berechnen, mit 10 Segmenten und durch Model klassifizieren lassen
+- Weitere Features extrahieren und an die Inputdaten anhängen und diese dann durch Model klassifizieren lassen:
+    - Spectral Centroid
+    - Zero Crossing Rate
+    - Spectral Rolloff
+    - Chroma Frequencies
+
 
 
 
@@ -10,7 +26,20 @@
 ------- Ergebnisse und Beobachtungen --------
 ---------------------------------------------
 
-- Accuracy = 0.7267
+- Accuracy auf Testdaten:
+    1) 0.7227
+
+- Falsche Zuordnungen
+    - Country <-> Reggae: 35
+    - Reggae <-> HipHop: 31
+    - Country <-> Blues: 28
+
+- Folgender Block ist auffällig mit vielen Falschzuordnungen:
+    - Country, Disco, Hiphop - Pop, reggae, rock
+
+- Graph - Trainingsverlauf
+    - Ab Epoche 15 findet eine sehr leichte Überanpassung (Overfit) statt
+        - test_accuracy steigt ab dort kaum noch an
 
 ---------------------------------------------
 --------------- Hyperparameter --------------
