@@ -1,0 +1,77 @@
+---------------------------------------------
+--------------- Ziele -----------------------
+---------------------------------------------
+
+- Accuracy erhöhen
+
+
+
+---------------------------------------------
+------- Ergebnisse und Beobachtungen --------
+---------------------------------------------
+
+- Accuracy = 0.7267
+
+---------------------------------------------
+--------------- Hyperparameter --------------
+---------------------------------------------
+Feature Extraktion:
+
+- n_mfcc = 13         -> Anzahl an mfcc koeffizienten
+- n_fft = 2048        -> Breite des Fensters bei der Fourier Transformation
+- hop_length = 512
+- num_segments = 10
+- Data Augmentation: 
+    - Jeder Song wurde in num_segments gleich lange Segmente unterteilt
+    - für jeden Abschnitt wurden je n_mfccs berechnet
+    - Aus den ursprünglich 1000 Samples wurden also 10000 augmentierte Samples
+
+Model:
+
+anzahl cnn filter = 32
+kernelsize = (3, 3) bzw. (2, 2) im 3. Conv2D Layer
+test_split = 0.25                                   # proportion of training data used for test
+validation_ratio = 0.2                              # proportion of training data used for validation
+sgd optimizer = Adam
+learning_rate = 0.0001
+batch_size = 32
+epochs = 30
+loss = sparse_categorical_crossentropy              # = Kreuzentropie. Keine onehot Kodierung, sonst categorical_crossentropy
+metrics = accuracy                                  # anzahl korrekte Vorhersagen / anzahl der daten
+Regularisierung durch
+    - Dropout Layer mit p=0.3
+
+
+---------------------------------------------
+------ Verwendetes CNN - Modell -------
+---------------------------------------------
+
+model = keras.models.Sequential([
+    # 1. Input Conv Layer = (anzahl mfcc vektoren, n mfcc Koeffizienten, 1) 
+    keras.layers.Conv2D(32, 3, activation='relu', input_shape=cnn_input_shape),
+    keras.layers.MaxPooling2D(pool_size=(3, 3), strides=(2, 2), padding='same'),
+    keras.layers.BatchNormalization(),
+    
+    # 2. Hidden Conv Layer
+    keras.layers.Conv2D(32, 3, padding='same', activation='relu'),
+    keras.layers.MaxPooling2D(pool_size=(3, 3), strides=(2, 2), padding='same'),
+    keras.layers.BatchNormalization(),
+
+    # 3. Hidden Conv Layer
+    # -> kleinere Kernelsize in Conv2D
+    # -> kleinere Poolsize in MaxPooling2D
+    keras.layers.Conv2D(32, 2, padding='same', activation='relu'),
+    keras.layers.MaxPooling2D(pool_size=(2, 2), strides=(2, 2), padding='same'),    
+    keras.layers.BatchNormalization(),
+
+    # 4. Flatten und Dense Layer
+    keras.layers.Flatten(),
+    keras.layers.Dense(64, activation='relu'),
+    keras.layers.Dropout(0.3),
+
+    # 5. Output Layer
+    keras.layers.Dense(10, activation='softmax') 
+])
+
+
+

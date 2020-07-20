@@ -103,8 +103,8 @@ model.summary()
 
 # Hyperparameter definieren
 learning_rate = 0.0001
-batch_size = 32 #5
-epochs = 30 #10 #50
+batch_size = 32
+epochs = 30
 validation_ratio = 0.2  # proportion of training data used for validation
 
 # SGD Optimierer festlegen und Model compilen
@@ -128,7 +128,6 @@ history = model.fit(inputs_train,
 ## Validierung
 
 test_error, test_accuracy = model.evaluate(inputs_test, targets_test, verbose=1)
-print("Error = {}".format(test_error))
 print("Accuracy = {}".format(test_accuracy))
 
 
