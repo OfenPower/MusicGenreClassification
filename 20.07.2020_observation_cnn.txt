@@ -6,13 +6,20 @@ Ziele:
 - Accuracy erhöhen
 
 ToDo:
-- t-SNE Verfahren zur Visualisierung der Inputdaten anwenden
-    - Damit dann herausfinden, welche genres sich ähneln, um Falschzuordnungen erklären zu können
-- Testdaten statt in 10 Segmente mal in 20 Segmente einteilen und durch Model klassifizieren lassen
 - Datenmenge anpassen:
     - Songs die das falsche genre im Datensatz haben in das richtige genre stecken, falls vorhanden
     - Duplikate entfernen
+    - Anschließend zählen wieviele songs in einem genre übrig bleiben
     - Anschließend nochmal Mfccs berechnen, mit 10 Segmenten und durch Model klassifizieren lassen
+    - mit t-SNE visualisieren
+- Modell
+    - Error-Rate wieder reinkodieren
+    - Netzanpassungen: 
+        - Anzahl Filter erhöhen
+        - Noch ein Conv2D einbauen
+        - Noch ein Dense Layer mit 128 vor 64 setzen bzw, 64 durch 128 Dense ersetzen
+    - mind. 10 Durchläufe für jedes CNN machen, falls Hyperparameter geändert
+        - Acc/Error pro Durchlauf notieren, Konfusionsmatrix/Graph FÜR JEDEN DURCHLAUF PROTOKOLLIEREN!!!
 - Weitere Features extrahieren und an die Inputdaten anhängen und diese dann durch Model klassifizieren lassen:
     - Spectral Centroid
     - Zero Crossing Rate
