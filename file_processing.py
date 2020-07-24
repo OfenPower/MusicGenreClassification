@@ -38,7 +38,7 @@ def save_mfcc(dataset_path,
         if dirpath is not dataset_path:
             
             # genre-bezeichnung speichern
-            dirpath_components = dirpath.split("/") # genre/blues = ["genre", "blues"]
+            dirpath_components = dirpath.split("/") # macht aus "genre/blues" = ["genre", "blues"]
             genre_name = dirpath_components[-1]
             data["mapping"].append(genre_name)
             print("\nProcessing {}".format(genre_name))
@@ -48,14 +48,44 @@ def save_mfcc(dataset_path,
                 # audiodatei laden
                 file_path = os.path.join(dirpath, f)
                 signal, sr = librosa.load(file_path, sr=SAMPLE_RATE)
-
-                # mfccs berechnen
+                
+                # Audio Features für n_segments berechnen:
+                # 1. Zero Crossings
+                # 2. Spectral Centroid
+                # 3. Spectral Rolloff
+                # 4. Chroma Frequencies
+                # 5. 13 Mfccs
                 for s in range(num_segments):
                     start_sample = num_samples_per_segment * s 
                     finish_sample = start_sample + num_samples_per_segment
                     #print(start_sample)
                     #print(finish_sample)
 
+                    # 1. Zero Crossings
+                    # - Trackt, wie oft das Signal sein Vorzeichen ändert, also vom negativen ins positive geht
+                    # - It usually has higher values for highly percussive sounds like those in metal and rock
+                    #zero_crossings = librosa.zero_crossings(x, pad=False)
+                    #print(sum(zero_crossings))
+
+                    # 2. Spectral Centroid
+                    # - Wo das "Massezentrum" des Sounds vorhanden ist, als gewichteter 
+                    #   Durchschnitt der vorhandenden Frequenzen
+                    #spectral_centroids = librosa.feature.spectral_centroid(x, sr=sr)[0]
+                    # s_c ist in frames. Diese nun in sekunden umrechnen
+                    #frames = range(len(spectral_centroids))
+                    #t = librosa.frames_to_time(frames)
+
+                    # 3. Spectral Rolloff
+                    #spectral_rolloff = librosa.feature.spectral_rolloff(x+0.01, sr=sr)[0]
+                    #frames = range(len(spectral_rolloff))
+                    #t = librosa.frames_to_time(frames)
+
+                    # 5. Chroma Frequencies
+                    # - projeziert gesamtes Spektrum auf 12 Halbtöne einer Oktave
+                    #hop_length = 512
+                    #chromagram = librosa.feature.chroma_stft(x, sr=sr, hop_length=hop_length)
+
+                    # 5. Mfcc
                     # Mfcc für ein Segment berechnen. Das Segment wird durch das Intervall [start_sample, finish_sample] gegeben
                     mfcc = librosa.feature.mfcc(signal[start_sample:finish_sample],
                                                 sr=sr,
@@ -63,16 +93,16 @@ def save_mfcc(dataset_path,
                                                 n_fft=n_fft, 
                                                 hop_length=hop_length) 
 
-                    # Mfcc transpose nehmen und diese zur Liste machen. 
-                    # Dadurch erhält man (num_samples_per_segment/hop_length) viele Mfcc Vektoren, welche n_mfcc viele Koeffizienten beinhalten
+                    # Mfcc Matrix-Transponierte nehmen und diese zur Liste machen. 
+                    # Dadurch erhält man (num_samples_per_segment/hop_length) viele Mfcc Vektoren, welche jeweils n_mfcc viele Koeffizienten beinhalten
+                    # Bsp: (1292, 13)
                     mfcc = mfcc.T
-                    #print(mfcc.shape) 
-                    #print(expected_num_mfcc_vectors_per_segment)
-                    #print(len(mfcc))
                     if len(mfcc) == expected_num_mfcc_vectors_per_segment:
                         data["mfcc"].append(mfcc.tolist())
                         data["labels"].append(i-1)
                         print("{}, segment:{}".format(file_path, s))
+
+
 
     # json Datei anlegen
     with open(json_path, "w") as fp:
@@ -95,7 +125,6 @@ def prepare_cnn_datasets(data_path, test_size):
     für das cnn auf, indem die Dimensionen der ndarrays für
     das cnn inputshape angepasst werden.
     """
-
     # Songdateien laden
     X, Y = load_data(data_path)
 
@@ -104,10 +133,9 @@ def prepare_cnn_datasets(data_path, test_size):
     X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=test_size)
 
     # ndarray Dimension für CNN Inputshape anpassen
-    # Das Ergebnis sind 4D Vektoren -> (num_samples, anzahl mfcc vektoren, n_mfcc koeffizienten, 1)
+    # Das Ergebnis sind 4D Vektoren -> (num_samples, anzahl mfcc vektoren, n_mfcc koeffizienten, 1), Bsp: (22, 1292, 13, 1)
     X_train = X_train[..., np.newaxis]
     X_test = X_test[..., np.newaxis]
-    
     return X_train, X_test, Y_train, Y_test
 
 
@@ -115,16 +143,20 @@ def prepare_cnn_datasets(data_path, test_size):
 if __name__ == "__main__":
     
      # Input und Output Ordner
-    DATASET_PATH = "../genres_short"
-    JSON_PATH = "../data_short.json"
+    DATASET_PATH = "../genres_adjusted"
+    JSON_PATH = "../data_adjusted_all.json"
 
-    """ save_mfcc(DATASET_PATH, 
+    # n_mfcc = 13         -> Anzahl an mfcc koeffizienten
+    # n_fft = 2048        -> Breite des Fensters bei der Fourier Transformation
+    # hop_length = 512    -> Verschieberate des Fensters
+    # num_segments = 10   -> Anzahl Segmente in die ein Song unterteilt wird
+    save_mfcc(DATASET_PATH, 
               JSON_PATH, 
-              n_mfcc=13,  
-              n_fft=2048, 
+              n_mfcc=13,
+              n_fft=2048,
               hop_length=512, 
-              num_segments=1) """
+              num_segments=1)
 
-    X_train, X_validation, X_test, Y_train, Y_validation, Y_test = prepare_cnn_datasets(JSON_PATH, 0.25, 0.2)
+    
 
-    print(X_train.shape)
+    

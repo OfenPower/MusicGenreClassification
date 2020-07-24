@@ -23,8 +23,7 @@ if __name__ == "__main__":
     target_ids = range(len(digits.target_names))
 
     plt.figure(figsize=(6, 5))
-    #colors = 'r', 'g', 'b', 'c', 'm', 'y', 'k', 'w', 'orange', 'purple'
-    colors = cm.rainbow(np.linspace(0, 1, 10))
+    colors = 'r', 'g', 'b', 'c', 'm', 'y', 'k', 'w', 'orange', 'purple'
     for i, c, label in zip(target_ids, colors, digits.target_names):
         print("y: {}, i: {}".format(y, i))
         plt.scatter(X_2d[y == i, 0], X_2d[y == i, 1], c=c, label=label)

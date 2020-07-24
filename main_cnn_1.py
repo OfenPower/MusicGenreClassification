@@ -127,7 +127,8 @@ history = model.fit(inputs_train,
 ## Validierung
 
 test_error, test_accuracy = model.evaluate(inputs_test, targets_test, verbose=1)
-print("Accuracy = {}".format(test_accuracy))
+print("Test Data Accuracy = {}".format(test_accuracy))
+print("Test Data Error = {}".format(test_error))
 
 
 ## Konfusionsmatrix
@@ -205,6 +206,8 @@ def plot_history(history):
     ax[1].set_xlabel("Epoch")
     ax[1].legend(loc="upper right")
     ax[1].set_title("Error eval")
+
+    fig.tight_layout(pad=3.0)
 
     plt.show()
 
