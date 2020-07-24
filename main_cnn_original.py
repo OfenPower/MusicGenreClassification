@@ -46,7 +46,7 @@ import file_processing
 
 # Input und Output Ordner
 DATASET_PATH = "../genres_short"
-JSON_PATH = "../data_all_10.json"
+JSON_PATH = "../data_adjusted_all_n10.json"
 
 # Daten aus json laden, in train/validation/test-Split einteilen und für cnn aufbereiten
 inputs_train, inputs_test, targets_train, targets_test = file_processing.prepare_cnn_datasets(JSON_PATH, test_size=0.25)
