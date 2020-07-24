@@ -22,7 +22,11 @@ def save_mfcc(dataset_path,
     # Daten in Dict speichern
     data = {
         "mapping": [],
-        "mfcc": [],
+        "zerocrossings": [],
+        "spectralcentroid": [],
+        "spectralrolloff": [],
+        "chromafrequencies": [],
+        "mfccs": [],
         "labels": []
     }
 
@@ -56,6 +60,8 @@ def save_mfcc(dataset_path,
                 # 4. Chroma Frequencies
                 # 5. 13 Mfccs
                 for s in range(num_segments):
+                    # Ein Segment wird durch das Intervall [start_sample, finish_sample] gegeben
+                    # Wenn n_segments=1, dann ist das Intervall [0, SAMPLES_PER_TRACK], welches den ganzen 30s Song enthält
                     start_sample = num_samples_per_segment * s 
                     finish_sample = start_sample + num_samples_per_segment
                     #print(start_sample)
@@ -64,41 +70,69 @@ def save_mfcc(dataset_path,
                     # 1. Zero Crossings
                     # - Trackt, wie oft das Signal sein Vorzeichen ändert, also vom negativen ins positive geht
                     # - It usually has higher values for highly percussive sounds like those in metal and rock
-                    #zero_crossings = librosa.zero_crossings(x, pad=False)
-                    #print(sum(zero_crossings))
+                    zero_crossings = librosa.zero_crossings(signal[start_sample:finish_sample],
+                                                            pad=False)
+                    # zero_crossings von numpy int32 zu python int konvertieren, um als json serialisiert werden zu könne
+                    sum_zero_crossings = sum(zero_crossings)
+                    val = np.int32(sum_zero_crossings)
+                    py_sum_zero_crossings = val.item()      #print(type(py_sum_zero_crossings)) 
+                    # Zero Crossing Summe als Feature aufnehmen
+                    data["zerocrossings"].append(py_sum_zero_crossings)
 
                     # 2. Spectral Centroid
                     # - Wo das "Massezentrum" des Sounds vorhanden ist, als gewichteter 
                     #   Durchschnitt der vorhandenden Frequenzen
-                    #spectral_centroids = librosa.feature.spectral_centroid(x, sr=sr)[0]
-                    # s_c ist in frames. Diese nun in sekunden umrechnen
-                    #frames = range(len(spectral_centroids))
-                    #t = librosa.frames_to_time(frames)
+                    # Bso: "So spectral centroid for blues song will lie somewhere 
+                    #       near the middle of its spectrum while that for a metal 
+                    #       song would be towards its end"
+                    spectral_centroids = librosa.feature.spectral_centroid(signal[start_sample:finish_sample], 
+                                                                           sr=sr,
+                                                                           n_fft=n_fft,
+                                                                           hop_length=hop_length)[0] # -> [0] wird benötigt, weil das Ergebnis (1, t) ist 
+                                                                                                     #    und wir an t interessiert sind
+                    # spectral_centroids ist in frames. Diese nun in Sekunden umrechnen
+                    frames = range(len(spectral_centroids))
+                    s_c = librosa.frames_to_time(frames)
+                    # Spectral Centroid Liste als Feature aufnehmen
+                    data["spectralcentroid"].append(s_c.tolist())
 
                     # 3. Spectral Rolloff
-                    #spectral_rolloff = librosa.feature.spectral_rolloff(x+0.01, sr=sr)[0]
-                    #frames = range(len(spectral_rolloff))
-                    #t = librosa.frames_to_time(frames)
+                    # "It represents the frequency below which a specified percentage of the total spectral energy, here 85%, lies"
+                    spectral_rolloff = librosa.feature.spectral_rolloff(signal[start_sample:finish_sample], 
+                                                                        sr=sr,
+                                                                        n_fft=n_fft,
+                                                                        hop_length=hop_length)[0] # -> [0] wird benötigt, weil das Ergebnis (1, t) ist 
+                                                                                                  #    und wir an t interessiert sind
+                    # spectral_rolloff ist in frames. Diese nun in Sekunden umrechnen
+                    frames = range(len(spectral_rolloff))
+                    s_r = librosa.frames_to_time(frames)
+        	        # spectral_rolloff als Liste anhängen
+                    data["spectralrolloff"].append(s_r.tolist())
 
-                    # 5. Chroma Frequencies
+                    # 4. Chroma Frequencies
                     # - projeziert gesamtes Spektrum auf 12 Halbtöne einer Oktave
-                    #hop_length = 512
-                    #chromagram = librosa.feature.chroma_stft(x, sr=sr, hop_length=hop_length)
+                    # - Bsp-Ergebnisshape: (12, 1293)
+                    chromagram = librosa.feature.chroma_stft(signal[start_sample:finish_sample], 
+                                                             sr=sr,
+                                                             n_fft=n_fft,
+                                                             hop_length=hop_length)
+                    # Chroma Frequencies Transpose als Liste anhängen
+                    chromagram = chromagram.T
+                    data["chromafrequencies"].append(chromagram.tolist())
 
                     # 5. Mfcc
-                    # Mfcc für ein Segment berechnen. Das Segment wird durch das Intervall [start_sample, finish_sample] gegeben
+                    # 13 Mfcc berechnen
                     mfcc = librosa.feature.mfcc(signal[start_sample:finish_sample],
                                                 sr=sr,
                                                 n_mfcc=n_mfcc, 
                                                 n_fft=n_fft, 
                                                 hop_length=hop_length) 
-
                     # Mfcc Matrix-Transponierte nehmen und diese zur Liste machen. 
                     # Dadurch erhält man (num_samples_per_segment/hop_length) viele Mfcc Vektoren, welche jeweils n_mfcc viele Koeffizienten beinhalten
                     # Bsp: (1292, 13)
                     mfcc = mfcc.T
                     if len(mfcc) == expected_num_mfcc_vectors_per_segment:
-                        data["mfcc"].append(mfcc.tolist())
+                        data["mfccs"].append(mfcc.tolist())
                         data["labels"].append(i-1)
                         print("{}, segment:{}".format(file_path, s))
 
@@ -108,16 +142,76 @@ def save_mfcc(dataset_path,
     with open(json_path, "w") as fp:
         json.dump(data, fp, indent=4)
 
-
+# Funktion zum Laden einer .json Datei des Datasets
 def load_data(dataset_path):
     with open(dataset_path, "r") as fp:
         data = json.load(fp)
 
     # listen aus json in ndarrays umwandeln
-    inputs = np.array(data["mfcc"])
+    zerocrossings = np.array(data["zerocrossings"])
+    spectralcentroid = np.array(data["spectralcentroid"])
+    spectralrolloff = np.array(data["spectralrolloff"])
+    chromafrequencies = np.array(data["chromafrequencies"])
+    mfccs = np.array(data["mfccs"])
     labels = np.array(data["labels"])
-    return inputs, labels
 
+    # alle features in ein 3D Inputarray einbetten, das wie folgt aussieht:
+    # (x, y, z) mit
+    # x = Anzahl Datensätze
+    # y = (num_samples_per_segment / hop_length) - viele Datenabschnitte z.B. 1292 
+    # z = Anzahl aller Features pro Datenabschnitt, also 13Mfccs + 12chroma + 1s_c + 1s_r + 1zero_crossing = 28 features
+    # Bsp: (22, 1292, 28)
+    # Damit die Einbettung funktioniert, müssen alle Feature-Arrays in 3d gewandelt werden, damit alle konkateniert werden können
+
+    #print(zerocrossings)
+    #print(spectralcentroid.shape)
+    #print(spectralrolloff.shape)
+    #print(chromafrequencies.shape)
+    #print(mfccs.shape)
+
+    # spectralcentroid und spectralrolloff um 3. Dimension erweitern und konkatenieren
+    #print("--- concat s_c, s_r ---")
+    spectralcentroid3d = spectralcentroid[..., np.newaxis]     # s_c array um 3. Dimension erweitern
+    spectralrolloff3d = spectralrolloff[..., np.newaxis]     # s_r array um 3. Dimension erweitern
+    rows = spectralcentroid3d.shape[0]
+    cols = spectralcentroid3d.shape[1]
+    for i in range(0, rows):
+        for j in range(0, cols):
+            spectralcentroid3d[i, j, 0] = spectralcentroid3d[i,j]    # -> s_c Werte in 3. Dimension schreiben
+            spectralrolloff3d[i, j, 0] = spectralrolloff3d[i, j]     # -> s_r Werte in 3. Dimension schreiben
+    # s_c und s_r in dritter Dimension konkatenieren
+    inputs1 = np.concatenate((spectralcentroid3d, spectralrolloff3d), axis=2)
+
+
+    # zero-crossing wert in einer y-langen Liste duplizieren und konkatenieren
+    #print("--- concat zero_crossings ---")
+    zero_crossings3d = spectralcentroid[..., np.newaxis]
+    for i in range(0, rows):
+        for j in range(0, cols):
+            zero_crossings3d[i, j, 0] = zerocrossings[i]    # -> zero_crossing Wert in 3. Dimension y-oft duplizieren
+    
+    # zero_crossings in dritter Dimension konkatenieren (aber so, dass zero_crossings an erster Stelle stehen)
+    inputs2 = np.concatenate((zero_crossings3d, inputs1), axis=2)
+
+    # Nun werden chroma und mfcc konkateniert. Da diese schon in 3d sind, geht das ohne 3D Vorverarbeitung
+    #print("--- concat Chroma and Mfcc ---")
+    chrom_mfcc = np.concatenate((chromafrequencies, mfccs), axis=2)
+
+    # chrom_mfcc an inputs2 konkatenieren. Das Ergebnis hat 28 Features in der 3. Dimension
+    #print("--- last concat ---")
+    inputs3 = np.concatenate((inputs2, chrom_mfcc), axis=2)
+
+    # DEBUG Prints zur manuellen Überprüfung der Werte mit der dazugehörigen .json Datei 
+    #print(inputs3.shape)
+    #print(inputs3[0, 0, 0]) # -> ZeroCrossing Wert des ersten Samples
+    #print(inputs3[0, 0, 1]) # -> s_c Wert des ersten Samples
+    #print(inputs3[0, 0, 2]) # -> s_r Wert des ersten Samples
+    #print(inputs3[0, 0, 3]) # -> Erster chroma Wert des ersten Samples
+    #print(inputs3[0, 0, 15]) # -> Erster Mfcc Wert des ersten Samples
+
+    return inputs3, labels
+
+# Funktion zum Laden einer .json Datei des Datasets, die für den Einsatz in einem CNN aufbereitet wird
 def prepare_cnn_datasets(data_path, test_size):
     """
     Lädt Samples aus .json datei in data_path, splittet diese in
@@ -143,19 +237,26 @@ def prepare_cnn_datasets(data_path, test_size):
 if __name__ == "__main__":
     
      # Input und Output Ordner
-    DATASET_PATH = "../genres_adjusted"
-    JSON_PATH = "../data_adjusted_all.json"
+    DATASET_PATH = "../genres_adjusted_short"
+    JSON_PATH = "../data_adjusted_short_n10.json"
+    #JSON_PATH = "../data_adjusted_all.json"
 
     # n_mfcc = 13         -> Anzahl an mfcc koeffizienten
-    # n_fft = 2048        -> Breite des Fensters bei der Fourier Transformation
+    # n_fft = 2048        -> Breite des Fensters bei der Fourier Transformation (STFT)
     # hop_length = 512    -> Verschieberate des Fensters
     # num_segments = 10   -> Anzahl Segmente in die ein Song unterteilt wird
-    save_mfcc(DATASET_PATH, 
+    """save_mfcc(DATASET_PATH, 
               JSON_PATH, 
               n_mfcc=13,
               n_fft=2048,
               hop_length=512, 
-              num_segments=1)
+              num_segments=1)"""
+
+    inputs, labels = load_data(JSON_PATH)
+    X1, Y1, X2, Y2 = prepare_cnn_datasets(JSON_PATH, 0.25)
+
+    print(X1.shape)
+    print(Y1.shape)
 
     
 
