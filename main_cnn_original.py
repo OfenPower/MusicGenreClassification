@@ -30,7 +30,7 @@ JSON_PATH = "../data_adjusted_n10.json"
 # Daten aus json laden, in train/validation/test-Split einteilen und für cnn aufbereiten
 inputs_train, inputs_test, targets_train, targets_test = file_processor.prepare_cnn_datasets(JSON_PATH, test_size=0.25)
 
-# CNN Modell bauen
+# CNN Modell von Valerio Velardo aufsetzen
 cnn_input_shape = (inputs_train.shape[1], inputs_train.shape[2], inputs_train.shape[3])
 model = keras.models.Sequential([
     # 1. Input Conv Layer = (anzahl mfcc vektoren, n mfcc Koeffizienten, 1) 

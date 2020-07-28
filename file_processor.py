@@ -156,7 +156,7 @@ def calculate_audiofeatures(dataset_path,
     with open(json_path, "w") as fp:
         json.dump(data, fp, indent=4)
 
-# Funktion zum Laden einer .json Datei des Datasets
+# Funktion zum Laden einer .json Feature-Datei des originalen Datasets
 def load_original_data(dataset_path):
     with open(dataset_path, "r") as fp:
         data = json.load(fp)
@@ -169,7 +169,7 @@ def load_original_data(dataset_path):
 
     return mfccs, labels
 
-# Funktion zum Laden einer .json Datei des Datasets
+# Funktion zum Laden einer .json Feature-Datei des augmentierten Datasets
 def load_adjusted_data(dataset_path):
     with open(dataset_path, "r") as fp:
         data = json.load(fp)
@@ -184,12 +184,12 @@ def load_adjusted_data(dataset_path):
     # alle features in ein 3D Inputarray einbetten, das wie folgt aussieht:
     # (x, y, z) mit
     # x = Anzahl Datensätze
-    # y = (num_samples_per_segment / hop_length) - viele Datenabschnitte z.B. 1292 
-    # z = Anzahl aller Features pro Datenabschnitt, also 13Mfccs + 12chroma + 1s_c + 1s_r + 1zero_crossing = 28 features
+    # y = (num_samples_per_segment / hop_length) - viele STFT Datenabschnitte z.B. 1292 
+    # z = Anzahl aller Features pro Datenabschnitt, also 13Mfccs + 12chroma + 1s_c + 1s_r = 27 features
     # Bsp: (22, 1292, 27)
-    # Damit die Einbettung funktioniert, müssen alle Feature-Arrays in 3d gewandelt werden, damit alle konkateniert werden können
+    # Damit die Einbettung funktioniert, müssen alle Feature-Arrays in 3d gewandelt werden, damit alle in ein 3D Array konkateniert werden können
 
-    # spectralcentroid und spectralrolloff um 3. Dimension erweitern und konkatenieren
+    # spectralcentroid und spectralrolloff um 3. Dimension erweitern
     spectralcentroid3d = spectralcentroid[..., np.newaxis]     # s_c array um 3. Dimension erweitern
     spectralrolloff3d = spectralrolloff[..., np.newaxis]     # s_r array um 3. Dimension erweitern
     rows = spectralcentroid.shape[0]
@@ -202,20 +202,21 @@ def load_adjusted_data(dataset_path):
     # s_c und s_r in dritter Dimension konkatenieren
     inputs1 = np.concatenate((spectralcentroid3d, spectralrolloff3d), axis=2)
 
-    # Nun werden chroma und mfcc konkateniert. Da diese schon in 3d sind, geht das ohne 3D Vorverarbeitung
+    # Nun werden chroma und mfcc konkateniert. Da diese schon in 3d sind, geht das ohne Vorverarbeitung
     chrom_mfcc = np.concatenate((chromafrequencies, mfccs), axis=2)
 
-    # chrom_mfcc an inputs2 konkatenieren. Das Ergebnis hat 28 Features in der 3. Dimension
+    # chrom_mfcc an inputs2 konkatenieren. Das Ergebnis hat 27 Features in der 3. Dimension
     inputs2 = np.concatenate((inputs1, chrom_mfcc), axis=2)
 
     # DEBUG Prints zur manuellen Überprüfung der Werte mit der dazugehörigen .json Datei 
-    #print(inputs2.shape)
+    
     #print(inputs2[0, 0, 0]) # -> s_c Wert des ersten Samples
     #print(inputs2[0, 0, 1]) # -> s_r Wert des ersten Samples
     #print(inputs2[0, 0, 2]) # -> Erster chroma Wert des ersten Samples
     #print(inputs2[0, 0, 14]) # -> Erster der 13 MFCC Werte des ersten Samples
 
     print("Adjusted Data successfully loaded!")
+    print(inputs2.shape)
 
     return inputs2, labels
 
@@ -227,15 +228,15 @@ def prepare_cnn_datasets(data_path, test_size):
     für das cnn auf, indem die Dimensionen der ndarrays für
     das cnn inputshape angepasst werden.
     """
-    # Songdateien laden
+    # Songdateien des augmentierten Datensatzes laden
     X, Y = load_adjusted_data(data_path)
 
     # Train/Test Split erzeugen
-    # Die Ergebnisse sind 3D Vekoren -> (num_samples, anzahl mfcc vektoren, n_mfcc koeffizienten)
+    # Die Ergebnisse sind 3D Vekoren -> (num_samples, Anzahl STFT Abschnitte, Anzahl Features)
     X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=test_size)
 
     # ndarray Dimension für CNN Inputshape anpassen
-    # Das Ergebnis sind 4D Vektoren -> (num_samples, anzahl mfcc vektoren, n_mfcc koeffizienten, 1), Bsp: (22, 1292, 13, 1)
+    # Das Ergebnis sind 4D Vektoren -> (num_samples, Anzahl STFT Abschnitte, Anzahl Features, 1), Bsp: (22, 1292, 27, 1)
     X_train = X_train[..., np.newaxis]
     X_test = X_test[..., np.newaxis]
     return X_train, X_test, Y_train, Y_test
