@@ -46,44 +46,30 @@ import file_processing
 
 # Input und Output Ordner
 DATASET_PATH = "../genres_short"
-JSON_PATH = "../data_all_10.json"
+JSON_PATH = "../data_adjusted_all_n10.json"
 
 # Daten aus json laden, in train/validation/test-Split einteilen und für cnn aufbereiten
 inputs_train, inputs_test, targets_train, targets_test = file_processing.prepare_cnn_datasets(JSON_PATH, test_size=0.25)
 
 cnn_input_shape = (inputs_train.shape[1], inputs_train.shape[2], inputs_train.shape[3])
+print(cnn_input_shape)
 
 
 # CNN Modell bauen
 model = keras.models.Sequential([
     # 1. Input Conv Layer = (anzahl mfcc vektoren, n mfcc Koeffizienten, 1) 
-    keras.layers.Conv2D(32,
-                        3,
-                        activation='relu',
-                        input_shape=cnn_input_shape),
-    keras.layers.MaxPooling2D(pool_size=(3, 3),
-                              strides=(2, 2),
-                              padding='same'),
+    keras.layers.Conv2D(128, (3, 3), activation='relu', padding='same', input_shape=cnn_input_shape),
+    keras.layers.MaxPooling2D(pool_size=(3, 3), strides=(2, 2), padding='same'),
     keras.layers.BatchNormalization(),
     
     # 2. Hidden Conv Layer
-    keras.layers.Conv2D(32, 
-                        3, 
-                        padding='same', 
-                        activation='relu'),
-    keras.layers.MaxPooling2D(pool_size=(3, 3),
-                              strides=(2, 2),
-                              padding='same'),
+    keras.layers.Conv2D(128, (3, 3), activation='relu', padding='same'),
+    keras.layers.MaxPooling2D(pool_size=(3, 3), strides=(2, 2), padding='same'),
     keras.layers.BatchNormalization(),
 
     # 3. Hidden Conv Layer
-    keras.layers.Conv2D(32, 
-                        2,                      # -> kleinere Kernelsize
-                        padding='same', 
-                        activation='relu'),
-    keras.layers.MaxPooling2D(pool_size=(2, 2), # -> kleinere Poolsize
-                              strides=(2, 2),
-                              padding='same'),    
+    keras.layers.Conv2D(128, (3, 3), activation='relu', padding='same'),
+    keras.layers.MaxPooling2D(pool_size=(3, 3), strides=(2, 2), padding='same'),
     keras.layers.BatchNormalization(),
 
     # 4. Flatten und Dense Layer
@@ -103,7 +89,7 @@ model.summary()
 # Hyperparameter definieren
 learning_rate = 0.0001
 batch_size = 32
-epochs = 30
+epochs = 15
 validation_ratio = 0.2  # proportion of training data used for validation
 
 # SGD Optimierer festlegen und Model compilen

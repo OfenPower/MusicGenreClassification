@@ -87,6 +87,7 @@ def save_mfcc(dataset_path,
                                                                             n_fft=n_fft,
                                                                             hop_length=hop_length)[0] # -> [0] wird benötigt, weil das Ergebnis (1, t) ist 
                                                                                                       #    und wir an t interessiert sind
+
                     # spectral_centroids ist in frames. Diese nun in Sekunden umrechnen
                     frames = range(len(spectral_centroids))
                     s_c = librosa.frames_to_time(frames)
@@ -158,6 +159,18 @@ def save_mfcc(dataset_path,
     # json Datei anlegen
     with open(json_path, "w") as fp:
         json.dump(data, fp, indent=4)
+
+# Funktion zum Laden einer .json Datei des Datasets
+def load_original_data(dataset_path):
+    with open(dataset_path, "r") as fp:
+        data = json.load(fp)
+
+    # listen aus json in ndarrays umwandeln
+    mfccs = np.array(data["mfcc"])
+    labels = np.array(data["labels"])
+    print("Songs successfully loaded!")
+
+    return mfccs, labels
 
 # Funktion zum Laden einer .json Datei des Datasets
 def load_data(dataset_path):

@@ -52,12 +52,13 @@ JSON_PATH = "../data_adjusted_all_n10.json"
 inputs_train, inputs_test, targets_train, targets_test = file_processing.prepare_cnn_datasets(JSON_PATH, test_size=0.25)
 
 cnn_input_shape = (inputs_train.shape[1], inputs_train.shape[2], inputs_train.shape[3])
+print(cnn_input_shape)
 
 
 # CNN Modell bauen
 model = keras.models.Sequential([
     # 1. Input Conv Layer = (anzahl mfcc vektoren, n mfcc Koeffizienten, 1) 
-    keras.layers.Conv2D(32, (3, 3), activation='relu', input_shape=cnn_input_shape),
+    keras.layers.Conv2D(32, (3, 3), activation='relu', padding='same', input_shape=cnn_input_shape),
     keras.layers.MaxPooling2D((3, 3), strides=(2, 2), padding='same'),
     keras.layers.BatchNormalization(),
     

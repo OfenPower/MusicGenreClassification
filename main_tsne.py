@@ -22,7 +22,7 @@ if __name__ == "__main__":
     # Fit and transform with PCA and TSNE and project the data in 2D
     #pca = PCA(n_components=200) # 1292 # 1690 (50 sind ca. 2% davon)
     #principalComponents = pca.fit_transform(inputs_2d)
-    tsne = TSNE(n_components=2, perplexity=100, verbose=1, n_iter=1000)  # random_state=0
+    tsne = TSNE(n_components=2, perplexity=30, verbose=1, n_iter=1000)  # random_state=0
     X_2d = tsne.fit_transform(inputs_2d)
 
     # Visualize the data
