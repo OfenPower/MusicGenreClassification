@@ -6,19 +6,19 @@ import json
 from sklearn.model_selection import train_test_split
 
 
-
 # Songdateiattribute
 SAMPLE_RATE = 22050
 DURATION = 30   # in sec
 SAMPLES_PER_TRACK = SAMPLE_RATE * DURATION
 
 # Mfcc und Labels als json speichern
-def save_mfcc(dataset_path, 
-              json_path, 
-              n_mfcc=13, 
-              n_fft=2048, 
-              hop_length=512, 
-              num_segments=1):  # songs in segmente aufteilen. Für jedes Segment werden n_mffcs berechnet. Dadurch wird die TrainingData um den Faktor num_segments erweitert
+def calculate_audiofeatures(dataset_path, 
+                            json_path, 
+                            n_mfcc=13, 
+                            n_fft=2048, 
+                            hop_length=512, 
+                            num_segments=1):  # Songs in segmente aufteilen. Für jedes Segment werden n_mffcs berechnet. 
+                                              # Dadurch wird der Datensatz um den Faktor num_segments erweitert
     
     
     # Daten in Dict speichern
@@ -222,11 +222,10 @@ def load_data(dataset_path):
 
     # DEBUG Prints zur manuellen Überprüfung der Werte mit der dazugehörigen .json Datei 
     print(inputs2.shape)
-    #print(inputs3[0, 0, 0]) # -> ZeroCrossing Wert des ersten Samples
-    #print(inputs3[0, 0, 1]) # -> s_c Wert des ersten Samples
-    #print(inputs3[0, 0, 2]) # -> s_r Wert des ersten Samples
-    #print(inputs3[0, 0, 3]) # -> Erster chroma Wert des ersten Samples
-    #print(inputs3[0, 0, 15]) # -> Erster Mfcc Wert des ersten Samples
+    #print(inputs3[0, 0, 0]) # -> s_c Wert des ersten Samples
+    #print(inputs3[0, 0, 1]) # -> s_r Wert des ersten Samples
+    #print(inputs3[0, 0, 2]) # -> Erster chroma Wert des ersten Samples
+    #print(inputs3[0, 0, 14]) # -> Erster der 13 MFCC Werte des ersten Samples
 
     print("Songs successfully loaded!")
 
@@ -266,12 +265,12 @@ if __name__ == "__main__":
     # n_fft = 2048        -> Breite des Fensters bei der Fourier Transformation (STFT)
     # hop_length = 512    -> Verschieberate des Fensters
     # num_segments = 10   -> Anzahl Segmente in die ein Song unterteilt wird
-    save_mfcc(DATASET_PATH,  
-              JSON_PATH, 
-              n_mfcc=13,
-              n_fft=2048,
-              hop_length=512, 
-              num_segments=10)
+    calculate_audiofeatures(DATASET_PATH,  
+                            JSON_PATH, 
+                            n_mfcc=13,
+                            n_fft=2048,
+                            hop_length=512, 
+                            num_segments=10)
 
     print("Done")
 

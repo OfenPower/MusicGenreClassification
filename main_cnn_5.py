@@ -18,44 +18,20 @@ import librosa.display
 from sklearn.model_selection import train_test_split
 
 # Custom imports
-import file_processing
-
-
-
-
-
-
-## ---------------- Vorverarbeitung ----------------
-
-
-
-## ---------------- Extraktion von Merkmalen ----------------
-""" file_processing.save_mfcc(DATASET_PATH, 
-                          JSON_PATH, 
-                          n_mfcc=13,  
-                          n_fft=2048, 
-                          hop_length=512, 
-                          num_segments=1) """
-
-
-## ---------------- Dimensionsreduzierung ----------------
-
+import file_processor
 
 
 ## ---------------- Klassifikation ----------------
 
 # Input und Output Ordner
 DATASET_PATH = "../genres_short"
-JSON_PATH = "../data_adjusted_all_n10.json"
+JSON_PATH = "../data_adjusted_n10.json"
 
 # Daten aus json laden, in train/validation/test-Split einteilen und für cnn aufbereiten
-inputs_train, inputs_test, targets_train, targets_test = file_processing.prepare_cnn_datasets(JSON_PATH, test_size=0.25)
-
-cnn_input_shape = (inputs_train.shape[1], inputs_train.shape[2], inputs_train.shape[3])
-print(cnn_input_shape)
-
+inputs_train, inputs_test, targets_train, targets_test = file_processor.prepare_cnn_datasets(JSON_PATH, test_size=0.25)
 
 # CNN Modell bauen
+cnn_input_shape = (inputs_train.shape[1], inputs_train.shape[2], inputs_train.shape[3])
 model = keras.models.Sequential([
     # 1. Input Conv Layer = (anzahl mfcc vektoren, n mfcc Koeffizienten, 1) 
     keras.layers.Conv2D(128, (3, 3), activation='relu', padding='same', input_shape=cnn_input_shape),
@@ -111,13 +87,13 @@ history = model.fit(inputs_train,
           )
 
 ## Validierung
-
+ 
 test_error, test_accuracy = model.evaluate(inputs_test, targets_test, verbose=1)
 print("Test Data Accuracy = {}".format(test_accuracy))
-print("Test Data Error = {}".format(test_error))
+#print("Test Data Error = {}".format(test_error))
 
 
-## Konfusionsmatrix
+## Konfusionsmatrix plotten
 
 classes = [
     'blues', 'classical', 'country', 'disco', 'hiphop', 'jazz', 'metal', 'pop',
@@ -133,7 +109,7 @@ def plot_confusion_matrix(y_test, y_pred, classes):
 
     # Compute confusion matrix
     conf_matrix = tf.math.confusion_matrix(y_test, y_pred)
-
+ 
     print(conf_matrix)
 
     fig, ax = plt.subplots(figsize=(10,10))
@@ -171,9 +147,11 @@ def plot_confusion_matrix(y_test, y_pred, classes):
     return ax
 
 
-plot_confusion_matrix(targets_test, y_pred,classes)
+plot_confusion_matrix(targets_test, y_pred, classes)
 plt.show()
 
+
+## Trainingsverlauf plotten
 
 def plot_history(history):
     fig, ax = plt.subplots(2)
