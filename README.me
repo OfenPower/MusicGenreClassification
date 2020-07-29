@@ -18,40 +18,37 @@ Used Libraries:
 
 -------------------------------------------------------------------------------------
 
-Skript "file_processor.py":
+Script "file_processor.py":
 
-Das Skript "file_processor.py" lädt den GTZAN Datensatz und extrahiert daraus
-4 Audio Feaures: Spectral Centroid, Spectral Rolloff, Chroma Frequencies, MFCCs.
-Als Ergebnis wird eine .json Datei abgespeichert, welche zu jeder Audiodatei alle
-Features und das dazugehörige Genrelabel enthält. 
-Mit dieser .json Datei arbeiten die weiteren Skripte zur Genreklassifizierung.
-
--------------------------------------------------------------------------------------
-
-Skript "main_cnn_adjusted.py"
-
-Dieses Skript enthält das angepasste CNN, auf welches sich das Paper bezieht. 
-Die Datei "main_cnn_adjusted.py" lädt eine .json Datei, die vom file_processor
-erzeugt wurde. Anschließend werden die darin enthaltenen Daten zur Eingabe in 
-ein CNN vorbereitet und in Trainings-/Test- und Validierungsdaten aufgeteilt. 
-Danach startet der CNN Trainingsprozess. Wenn das Training beendet ist, folgt 
-die Klassifizierung des Testdatensatzes, sowie die Visualisierung des Ergebnisses
-in einer Konfusionsmatrix. Zum Schluss wird der Trainingsablauf grafisch
-dargestellt.
+The script "file_processor.py" loads the GTZAN data set and extracts 4 Audio Feaures: 
+Spectral Centroid, Spectral Rolloff, Chroma Frequencies, MFCCs. As a result, a .json 
+file is saved, which contains all features and the corresponding genre label. 
+This .json file is used by the other scripts for genre classification.
 
 -------------------------------------------------------------------------------------
 
-Skript "main_cnn_original.py"
+Script "main_cnn_adjusted.py"
 
-Dieses Skript enthält das originale CNN aus https://www.youtube.com/watch?v=dOG-HxpbMSw.
-Der Ablauf ist identisch zum Skript "main_cnn_adjusted.py". Das originale CNN ist
-deshalb hier nochmal enthalten, damit man beide CNNs miteinander vergleichen kann.
+This script contains the customized CNN to which the paper refers. The file "main_cnn_adjusted.py" 
+loads a .json file, which was created by the "file_processor.py" script. The data contained 
+in it is then prepared and used for input in a CNN and divided into training/testing and 
+validation data. Afterwards the CNN training process starts. When the training is finished,
+the classification of the test data set, as well as the visualization of the result
+in a confusion matrix follows. At the end the training process is graphically shown.
+
 
 -------------------------------------------------------------------------------------
 
-Skript "main_tsne.py"
+Script "main_cnn_original.py"
 
-Mit Ausführung dieses Skripts wird eine .json Datei, die vom file_processor erzeugt
-wurde, eingelesen und mit dem t-SNE Verfahren visualisiert. Eingestellte Parameter
-sind: perplexity=20 und n_iter=1000.
+This script contains the original CNN from https://www.youtube.com/watch?v=dOG-HxpbMSw.
+The procedure is identical to the script "main_cnn_adjusted.py". The original CNN is
+therefore included here again, so that you can compare both CNNs.
+
+-------------------------------------------------------------------------------------
+
+Script "main_tsne.py"
+
+When this script is executed, a .json file created by the "file_processor.py" script
+is read and visualized with the t-SNE method. Parameters are: perplexity=20 and n_iter=1000.
 
