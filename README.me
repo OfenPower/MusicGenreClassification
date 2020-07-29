@@ -1,7 +1,7 @@
 Music Genre Classification
----------------------------
+-------------------------------------------------------------------------------------
 
-Dataset: GTZAN, 1000 Songs, splitted in 10 Genres (100 Songs for each Genre)
+Dataset: GTZAN, 1000 Songs in 10 Genres (100 Songs per Genre)
 Link to Dataset: http://marsyas.info/downloads/datasets.html
 
 Used Libraries:
@@ -11,7 +11,55 @@ Used Libraries:
 - librosa	(Installation: pip install librosa )
 - scikit-learn	(Installation: pip install scikit-learn)
 
--------------------------
 
 
+-------------------------------------------------------------------------------------
+
+---------------------------- Ausführung der .py Dateien --------------------------
+
+-------------------------------------------------------------------------------------
+
+
+-------------------------------------------------------------------------------------
+
+---------------------------- Dokumentation der .py Dateien --------------------------
+
+-------------------------------------------------------------------------------------
+
+Skript "file_processor.py":
+
+Das Skript "file_processor.py" lädt den GTZAN Datensatz und extrahiert daraus
+4 Audio Feaures: Spectral Centroid, Spectral Rolloff, Chroma Frequencies, MFCCs.
+Als Ergebnis wird eine .json Datei abgespeichert, welche zu jeder Audiodatei alle
+Features und das dazugehörige Genrelabel enthält. 
+Mit dieser .json Datei arbeiten die weiteren Skripte zur Genreklassifizierung,
+
+-------------------------------------------------------------------------------------
+
+Skript "main_cnn_adjusted.py"
+
+Dieses Skript enthält das angepasste CNN, auf welches sich das Paper bezieht. 
+Die Datei "main_cnn_adjusted.py" lädt eine .json Datei, die vom file_processor
+erzeugt wurde. Anschließend werden die darin enthaltenen Daten zur Eingabe in 
+ein CNN vorbereitet und in Trainings-/Test- und Validierungsdaten aufgeteilt. 
+Danach startet der CNN Trainingsprozess. Wenn das Training beendet ist, folgt 
+die Klassifizierung des Testdatensatzes, sowie die Visualisierung des Ergebnisses
+in einer Konfusionsmatrix. Zum Schluss wird der Trainingsablauf grafisch
+dargestellt.
+
+-------------------------------------------------------------------------------------
+
+Skript "main_cnn_original.py"
+
+Dieses Skript enthält das originale CNN aus https://www.youtube.com/watch?v=dOG-HxpbMSw.
+Der Ablauf ist identisch zum Skript "main_cnn_adjusted.py". Das originale CNN ist
+deshalb hier nochmal enthalten, damit man beide CNNs miteinander vergleichen kann.
+
+-------------------------------------------------------------------------------------
+
+Skript "main_tsne.py"
+
+Mit Ausführung dieses Skripts wird eine .json Datei, die vom file_processor erzeugt
+wurde, eingelesen und mit dem t-SNE Verfahren visualisiert. Eingestellte Parameter
+sind: perplexity=20 und n_iter=1000.
 
