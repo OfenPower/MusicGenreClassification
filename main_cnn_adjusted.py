@@ -20,11 +20,15 @@ from sklearn.model_selection import train_test_split
 # Custom imports
 import file_processor
 
+# ------------------------------------------
+# ------------------------------------------
+# !!! Für Informationen, siehe README.me !!!
+# ------------------------------------------
+# ------------------------------------------
 
 ## ---------------- Klassifikation ----------------
 
-# Input und Output Ordner
-DATASET_PATH = "../genres_adjusted"
+# Pfad zur .json Datei
 JSON_PATH = "../data_adjusted_n10.json"
 
 # Daten aus json laden, in train/validation/test-Split einteilen und für cnn aufbereiten

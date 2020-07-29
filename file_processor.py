@@ -242,12 +242,19 @@ def prepare_cnn_datasets(data_path, test_size):
     return X_train, X_test, Y_train, Y_test
 
 
-# Main zum Testen der file_processing Funktionen
+## --------------------------- Main ---------------------------
 if __name__ == "__main__":
     
+
+    # ------------------------------------------
+    # ------------------------------------------
+    # !!! Für Informationen, siehe README.me !!!
+    # ------------------------------------------
+    # ------------------------------------------
+
      # Input und Output Ordner
     DATASET_PATH = "../genres_adjusted"
-    JSON_PATH = "../DEBUG_data_adjusted_n10.json"
+    JSON_PATH = "../data_adjusted_n10.json"
 
     # n_mfcc = 13         -> Anzahl an mfcc koeffizienten
     # n_fft = 2048        -> Breite des Hanning Windows bei der Fourier Transformation (STFT)
