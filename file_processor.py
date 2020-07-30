@@ -221,15 +221,20 @@ def load_adjusted_data(dataset_path):
     return inputs2, labels
 
 # Funktion zum Laden einer .json Datei des Datasets, die für den Einsatz in einem CNN aufbereitet wird
-def prepare_cnn_datasets(data_path, test_size):
+def prepare_cnn_datasets(data_path, test_size, is_data_adjusted=True):
     """
     Lädt Samples aus .json datei in data_path, splittet diese in
     train, validation und test splits und bereitet die splits
     für das cnn auf, indem die Dimensionen der ndarrays für
     das cnn inputshape angepasst werden.
     """
+
+    if is_data_adjusted:
     # Songdateien des augmentierten Datensatzes laden
-    X, Y = load_adjusted_data(data_path)
+        X, Y = load_adjusted_data(data_path)
+    else:
+    # Songdateien des originalen Datensatzes laden
+        X, Y = load_original_data(data_path)
 
     # Train/Test Split erzeugen
     # Die Ergebnisse sind 3D Vekoren -> (num_samples, Anzahl STFT Abschnitte, Anzahl Features)

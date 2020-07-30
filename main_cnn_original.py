@@ -31,8 +31,11 @@ import file_processor
 # Pfad zur .json Datei
 JSON_PATH = "../data_adjusted_n10.json"
 
+# bool-Flag ob die .json Datei den bereinigten Datensatz enthält oder nicht
+is_data_adjusted = True
+
 # Daten aus json laden, in train/validation/test-Split einteilen und für cnn aufbereiten
-inputs_train, inputs_test, targets_train, targets_test = file_processor.prepare_cnn_datasets(JSON_PATH, test_size=0.25)
+inputs_train, inputs_test, targets_train, targets_test = file_processor.prepare_cnn_datasets(JSON_PATH, test_size=0.25, is_data_adjusted=is_data_adjusted)
 
 # CNN Modell von Valerio Velardo aufsetzen
 cnn_input_shape = (inputs_train.shape[1], inputs_train.shape[2], inputs_train.shape[3])
